@@ -1,3 +1,19 @@
 zenodo_url: "https://zenodo.org/record/8208151/files"
 dataset: "Amazon0601_0.csv"
 dataset_meta: "Amazon0601_0.csv.meta"
+iterations: 3
+scheduling_policies:
+  - STATIC
+  # - SS
+  - GSS
+  - TSS
+  - FAC2
+  - TFSS
+  - FISS
+  - VISS
+  - PLS
+  - MSTATIC
+  - MFSC
+  - PSS
+max_threads: 8
+min_threads: 4

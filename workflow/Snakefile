@@ -4,11 +4,44 @@ configfile: "config/config.yaml"
 url = config["zenodo_url"]
 dataset = config["dataset"]
 dataset_meta = config["dataset_meta"]
+iterations = config["iterations"]
 
 rule all:
   input:
-    f"data/{dataset}",
-    f"data/{dataset_meta}"
+    "plots/all.pdf"
+
+rule gen_plot:
+  input:
+    script = "workflow/scripts/all.R",
+    data = expand("data/{policy}/all.csv", policy=config["scheduling_policies"])
+  output:
+    "plots/all.pdf"
+  shell:
+    "nix develop .#rshell --command Rscript {input.script} {input.data} {output}"
+
+    
+
+def get_csv_per_policy(wildcards):
+    return expand("data/{policy}/result_nb_threads_{nb_threads}.csv", policy=wildcards.policy, nb_threads=range(config["min_threads"], config["max_threads"] + 1))
+
+rule csv_per_policy:
+  input:
+    script = "workflow/scripts/analysis.R",
+    data = get_csv_per_policy
+  output:
+    "data/{policy}/all.csv"
+  shell:
+    "nix develop .#rshell --command Rscript {input.script} {input.data} {wildcards.policy} {output}"
+  
+rule run_expe:
+  input:
+    data = f"data/{dataset}",
+    script = "src/components_read.daphne",
+    meta = f"data/{dataset_meta}",
+  output:
+    "data/{policy}/result_nb_threads_{nb_threads}.csv"
+  shell:
+    f"daphne --vec --num-threads={{wildcards.nb_threads}} --partitioning={{wildcards.policy}} --select-matrix-representations --args f=\\\"./{{input.data}}\\\" --args iterations={iterations} {{input.script}} > {{output}}"
 
 rule download_dataset:
   input:

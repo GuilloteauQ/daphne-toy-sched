@@ -16,3 +16,32 @@ Starting to look at the delivrable D5.2
 - let's also change the daphne script
   - we increase the `maxi` variable which seems to represent the number of iterations of the algorithm
   - we also add an argument to have several iterations
+
+ seems to work fine
+
+ #+BEGIN_EXAMPLE
+ daphne --vec --num-threads=12 --select-matrix-representations --args f=\"./data/Amazon0601_0.csv\" --args iterations=10 src/components_read.daphne
+ #+END_EXAMPLE
+
+ Let's do some simple evaluation.
+
+ Let's look at the scaling of different scheduling strategies by increasing the number of threads.
+
+ We can actually play with all the scheduling policies.
+
+ Let's:
+ - pin the threads (--pin-workers)
+ - use the centralized work queue (--queue_layout=CENTALIZED)
+   - it is the default, but let's be explicit anyway
+   - thus no workstealing
+ - scheduling policies:
+   - STATIC, SS, GSS, TSS, FAC2, TFSS, FISS, VISS, PLS, MSTATIC, MFSC, PSS
+ - as i will run it on Grid'5000 in the end, let's say that we will use between 1 and 64 threads
+ - as this is a small task and not a real research work, i'll just repeat 10 times each experiment
+
+
+ah! small question:
+- as i added a loop in my daphne script, does the distribution of work changes compared to running 10 times the same script ?
+  - i suppose that the partitionning is done much lower (ie matrix mult)
+
+ok, i added some R scripts for simple visualizations.

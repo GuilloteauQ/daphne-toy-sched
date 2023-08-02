@@ -21,6 +21,14 @@
           ];
         };
 
+        rshell = pkgs.mkShell {
+          buildInputs = [
+            (pkgs.rWrapper.override { packages = with pkgs.rPackages; [
+              tidyverse
+            ]; })
+          ];
+        };
+
         notes = pkgs.mkShell {
           buildInputs = [
             pkgs.emacs
