@@ -30,7 +30,10 @@
         daphne-cst-shell = pkgs.mkShell {
           buildInputs = [
             (daphne-nix.packages.${system}.daphne.overrideAttrs (finalAttrs: previousAttrs: {
-              patches = [ ./src/cst_sched.patch ];
+              patchPhase = ''
+                ${previousAttrs.patchPhase}
+                patch -Np1 -i ${./src/cst_sched.patch}
+              '';
             }))
           ];
         };

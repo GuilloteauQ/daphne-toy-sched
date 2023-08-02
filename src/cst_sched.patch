@@ -12,11 +12,33 @@ index 5165e080..0bf91f2e 100644
              ),
              init(STATIC)
      );
+diff --git a/src/parser/config/ConfigParser.h b/src/parser/config/ConfigParser.h
+index 0a1021c7..85d2eb06 100644
+--- a/src/parser/config/ConfigParser.h
++++ b/src/parser/config/ConfigParser.h
+@@ -35,7 +35,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(SelfSchedulingScheme, {
+     {PLS, "PLS"},
+     {MSTATIC, "MSTATIC"},
+     {MFSC, "MFSC"},
+-    {PSS, "PSS"}
++    {PSS, "PSS"},
++    {CST, "CST"}
+ })
+
+ class ConfigParser {
 diff --git a/src/runtime/local/vectorized/LoadPartitioning.h b/src/runtime/local/vectorized/LoadPartitioning.h
-index d1fd2c5b..097a6350 100644
+index d1fd2c5b..892cc6a9 100644
 --- a/src/runtime/local/vectorized/LoadPartitioning.h
 +++ b/src/runtime/local/vectorized/LoadPartitioning.h
-@@ -35,6 +35,7 @@ private:
+@@ -21,6 +21,7 @@
+ #include <cmath>
+ #include <cstdlib>
+ #include <string>
++#include <iostream>
+
+ class LoadPartitioning {
+
+@@ -35,6 +36,7 @@ private:
      uint64_t tssChunk;
      uint64_t tssDelta;
      uint64_t mfscChunk;
@@ -24,18 +46,24 @@ index d1fd2c5b..097a6350 100644
      uint32_t fissStages;
      int getMethod (const char * method){
          return std::stoi(method);
-@@ -75,6 +76,10 @@ public:
+@@ -75,6 +77,16 @@ public:
          tssChunk = (uint64_t) ceil((double) totalTasks / ((double) 2.0*totalWorkers));
          uint64_t nTemp = (uint64_t) ceil(2.0*totalTasks/(tssChunk+1.0));
          tssDelta  = (uint64_t) (tssChunk - 1.0)/(double)(nTemp-1.0);
 +        cstChunk = 0;
-+        if (method == CST && const char* env_cst_size = std::getenv("DAPHNE_CST_TASK_SIZE")) {
-+            cstChunk = std::stoi(env_cst_size);
++        if (schedulingMethod == CST){
++            if (const char* env_cst_size = std::getenv("DAPHNE_CST_TASK_SIZE")){
++                cstChunk = std::stoi(env_cst_size);
++            }
++            else{
++                std::cerr << "Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on MFSC" << std::endl;
++                schedulingMethod = MFSC;
++            }
 +        }
      }
      bool hasNextChunk(){
          return scheduledTasks < totalTasks;
-@@ -142,6 +147,10 @@ public:
+@@ -142,6 +154,10 @@ public:
                  chunkSize=mfscChunk;
                  break;
              }
