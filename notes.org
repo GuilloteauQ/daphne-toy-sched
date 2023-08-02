@@ -7,3 +7,5 @@
 - to avoid rebuild everything all the time, i also set up a binary cache at https://daphne-nix.cachix.org
 - the packaging is a bit dirty still, but good enough for simple tests
   - some of the deps are not managed (like cuda, mpi, fpga stuff)
+
+Starting to look at the delivrable D5.2

@@ -17,6 +17,7 @@
         default = pkgs.mkShell {
           buildInputs = [
             daphne-nix.packages.${system}.daphne
+            pkgs.snakemake
           ];
         };
 

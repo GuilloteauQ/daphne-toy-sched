@@ -1,0 +1,28 @@
+configfile: "config/config.yaml"
+
+
+url = config["zenodo_url"]
+dataset = config["dataset"]
+dataset_meta = config["dataset_meta"]
+
+rule all:
+  input:
+    f"data/{dataset}",
+    f"data/{dataset_meta}"
+
+rule download_dataset:
+  input:
+    ".md5/checkmd5.md5"
+  output:
+    f"data/{dataset}"
+  shell:
+    f"wget {url}/{dataset} -O {{output}} && md5sum -c {{input}}"
+
+rule download_dataset_meta:
+  input:
+    ".md5/checkmd5_meta.md5"
+  output:
+    f"data/{dataset_meta}"
+  shell:
+    f"wget {url}/{dataset_meta} -O {{output}} && md5sum -c {{input}}"
+
