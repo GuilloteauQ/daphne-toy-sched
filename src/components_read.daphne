@@ -2,33 +2,39 @@
 
 // Arguments:
 // - f ... filename of the adjacency matrix (provide as `--args f=\"foo.csv\"`)
+// - iterations .... number of iterations (`--args iterations=100`)
 
 
 // Read adjacency matrix.
 G = readMatrix($f);
 
+
 // Initialization.
 // TODO Don't forget to set this back to something high (e.g. 1000) later.
 maxi = 1000;
-c = seq(1.0, as.f64(nrow(G)), 1.0); // init w/ vertex IDs
-diff = inf;
-iter = 1;
+nb_iterations = $iterations;
 
-t1 = as.f64(now());
+for (i in 1:$iterations) {
+    c = seq(1.0, as.f64(nrow(G)), 1.0); // init w/ vertex IDs
+    diff = inf;
+    iter = 1;
 
-// Iterative computation of connected components (decisive part).
-while(as.si64(diff > 0.0) && iter <= maxi) {
-    ti0 = now();
+    t1 = as.f64(now());
 
-    u = max(aggMax(G * t(c), 0), c);
-    diff = sum(u != c);
-    c = u;
+    // Iterative computation of connected components (decisive part).
+    while(as.si64(diff > 0.0) && iter <= maxi) {
+        ti0 = now();
 
-    iter = iter + 1;
+        u = max(aggMax(G * t(c), 0), c);
+        diff = sum(u != c);
+        c = u;
+
+        iter = iter + 1;
+    }
+
+    t2 = as.f64(now());
+    t = t2 -t1;
+    t = t/1000000000.0;
+    // print("Core algorithm time in seconds");
+    print(t);
 }
-
-t2 = as.f64(now());
-t = t2 -t1;
-t = t/1000000000.0;
-print("Core algorithm time in seconds");
-print(t);

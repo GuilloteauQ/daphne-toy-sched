@@ -9,3 +9,10 @@
   - some of the deps are not managed (like cuda, mpi, fpga stuff)
 
 Starting to look at the delivrable D5.2
+
+- csv files are big, let's put them on zenodo
+  - https://zenodo.org/record/8208151
+- let's also start some snakemake boilerplate to automatize all of this
+- let's also change the daphne script
+  - we increase the `maxi` variable which seems to represent the number of iterations of the algorithm
+  - we also add an argument to have several iterations
