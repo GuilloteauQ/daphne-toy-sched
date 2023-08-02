@@ -41,7 +41,7 @@ rule run_expe:
   output:
     "data/{policy}/result_nb_threads_{nb_threads}.csv"
   shell:
-    f"daphne --vec --num-threads={{wildcards.nb_threads}} --partitioning={{wildcards.policy}} --select-matrix-representations --args f=\\\"./{{input.data}}\\\" --args iterations={iterations} {{input.script}} > {{output}}"
+    f"nix develop .#daphne-shell --command daphne --vec --num-threads={{wildcards.nb_threads}} --partitioning={{wildcards.policy}} --select-matrix-representations --args f=\\\"./{{input.data}}\\\" --args iterations={iterations} {{input.script}} > {{output}}"
 
 rule download_dataset:
   input:

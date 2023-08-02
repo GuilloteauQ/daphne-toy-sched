@@ -45,3 +45,145 @@ ah! small question:
   - i suppose that the partitionning is done much lower (ie matrix mult)
 
 ok, i added some R scripts for simple visualizations.
+
+we will also remove SS from the policies as i dont really want to spend an eternity running the script ^^
+
+
+Ok, let's now look at this custom scheduler.
+
+The task is:
+
+#+BEGIN_EXAMPLE
+Edit the source code
+ to add a new simple scheduling technique (of your choice) allowing end users to determine a fixed task size that is scheduled whenever a CPU thread is available and idle.
+#+END_EXAMPLE
+
+From this I understand that in the end we should have something like:
+
+
+ #+BEGIN_EXAMPLE
+ daphne --vec --num-threads=12 --select-matrix-representations --partitioning=CST --args f=\"./data/Amazon0601_0.csv\" --args iterations=10 src/components_read.daphne
+ #+END_EXAMPLE
+
+ where `CST` would stand for "constant".
+The question is now to know how to pass this constant task size.
+
+In the other scheduling strategies there are no such parameters.
+
+The initialization is done via
+
+#+BEGIN_SRC c++
+// src/runtime/local/vectorized/LoadPartitioning.h
+  LoadPartitioning(int method, uint64_t tasks, uint64_t chunk, uint32_t workers, bool autochunk) {
+  // ...
+  }
+#+END_SRC
+
+The method is the desired partitionining (would be `CST` for us).
+`tasks` is the number of tasks.
+`chunk` seems to be the minimum chunk size (remember `--grain-size`). by default it is 1.
+`workers` is the number of workers.
+`autochunk` seems to be if there should be chunking or not ?
+
+one easy modification would be to pass the fixed size through the `--grain-size` flag.
+
+it might look something like this:
+
+#+BEGIN_EXAMPLE
+daphne --vec --num-threads=12 --select-matrix-representations --partitioning=CST --grain-size=42 --args f=\"./data/Amazon0601_0.csv\" --args iterations=10 src/components_read.daphne
+#+END_EXAMPLE
+
+We might think that there might be issues with the "last few tasks" in the end if this fixed size does not divide the number of tasks.
+But the current code already take care of this:
+
+#+BEGIN_SRC c++
+// src/runtime/local/vectorized/LoadPartitioning.h
+  chunkSize = std::min(chunkSize, remainingTasks);
+#+END_SRC
+
+
+another option would be to pass the fixed tasks size through environment variable, like what is already done to override partitionning method:
+
+#+BEGIN_SRC c++
+// src/runtime/local/vectorized/LoadPartitioning.h
+  if(const char* env_m = std::getenv("DAPHNE_TASK_PARTITION")) {
+    method= getMethod(env_m);
+  } 
+#+END_SRC
+
+So it might look like:
+
+
+ #+BEGIN_EXAMPLE
+ DAPHNE_CST_TASK_SIZE=42 daphne --vec --num-threads=12 --select-matrix-representations --partitioning=CST --args f=\"./data/Amazon0601_0.csv\" --args iterations=10 src/components_read.daphne
+ #+END_EXAMPLE
+
+
+ 
+It seems better to pass arguments through the env variables.
+Giving several meaning to `--grain-size` would be confusing, and modifying all the calls to `LoadPartitionning` too messy.
+
+
+So the diff looks like:
+
+#+BEGIN_SRC diff
+diff --git a/src/api/internal/daphne_internal.cpp b/src/api/internal/daphne_internal.cpp
+index 5165e080..0bf91f2e 100644
+--- a/src/api/internal/daphne_internal.cpp
++++ b/src/api/internal/daphne_internal.cpp
+@@ -145,7 +145,8 @@ int startDAPHNE(int argc, const char** argv, DaphneLibResult* daphneLibRes, int
+                 clEnumVal(PLS, "Performance loop-based self-scheduling"),
+                 clEnumVal(MSTATIC, "Modified version of Static, i.e., instead of n/p, it uses n/(4*p) where n is number of tasks and p is number of threads"),
+                 clEnumVal(MFSC, "Modified version of fixed size chunk self-scheduling, i.e., MFSC does not require profiling information as FSC"),
+-                clEnumVal(PSS, "Probabilistic self-scheduling")
++                clEnumVal(PSS, "Probabilistic self-scheduling"),
++                clEnumVal(CST, "Fixed size tasks. Pass the size via the env variable DAPHNE_CST_TASK_SIZE")
+             ),
+             init(STATIC)
+     );
+diff --git a/src/runtime/local/vectorized/LoadPartitioning.h b/src/runtime/local/vectorized/LoadPartitioning.h
+index d1fd2c5b..097a6350 100644
+--- a/src/runtime/local/vectorized/LoadPartitioning.h
++++ b/src/runtime/local/vectorized/LoadPartitioning.h
+@@ -35,6 +35,7 @@ private:
+     uint64_t tssChunk;
+     uint64_t tssDelta;
+     uint64_t mfscChunk;
++    uint64_t cstChunk;
+     uint32_t fissStages;
+     int getMethod (const char * method){
+         return std::stoi(method);
+@@ -75,6 +76,10 @@ public:
+         tssChunk = (uint64_t) ceil((double) totalTasks / ((double) 2.0*totalWorkers));
+         uint64_t nTemp = (uint64_t) ceil(2.0*totalTasks/(tssChunk+1.0));
+         tssDelta  = (uint64_t) (tssChunk - 1.0)/(double)(nTemp-1.0);
++        cstChunk = 0;
++        if (method == CST && const char* env_cst_size = std::getenv("DAPHNE_CST_TASK_SIZE")) {
++            cstChunk = std::stoi(env_cst_size);
++        }
+     }
+     bool hasNextChunk(){
+         return scheduledTasks < totalTasks;
+@@ -142,6 +147,10 @@ public:
+                 chunkSize=mfscChunk;
+                 break;
+             }
++            case CST:{
++                chunkSize=cstChunk;
++                break;
++            }
+             default:{
+                 chunkSize = (uint64_t)ceil(totalTasks/totalWorkers/4.0);
+                 break;
+diff --git a/src/runtime/local/vectorized/LoadPartitioningDefs.h b/src/runtime/local/vectorized/LoadPartitioningDefs.h
+index d0b66eff..c2f10f2d 100644
+--- a/src/runtime/local/vectorized/LoadPartitioningDefs.h
++++ b/src/runtime/local/vectorized/LoadPartitioningDefs.h
+@@ -42,5 +42,6 @@ enum SelfSchedulingScheme {
+     MSTATIC,
+     MFSC,
+     PSS,
++    CST,
+     INVALID=-1 /* only for JSON enum conversion */
+ };
+#+END_SRC

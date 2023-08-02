@@ -16,8 +16,22 @@
       devShells.${system} = {
         default = pkgs.mkShell {
           buildInputs = [
-            daphne-nix.packages.${system}.daphne
             pkgs.snakemake
+            pkgs.wget
+          ];
+        };
+
+        daphne-shell = pkgs.mkShell {
+          buildInputs = [
+            daphne-nix.packages.${system}.daphne
+          ];
+        };
+
+        daphne-cst-shell = pkgs.mkShell {
+          buildInputs = [
+            (daphne-nix.packages.${system}.daphne.overrideAttrs (finalAttrs: previousAttrs: {
+              patches = [ ./src/cst_sched.patch ];
+            }))
           ];
         };
 

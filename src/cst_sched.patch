@@ -1,0 +1,59 @@
+diff --git a/src/api/internal/daphne_internal.cpp b/src/api/internal/daphne_internal.cpp
+index 5165e080..0bf91f2e 100644
+--- a/src/api/internal/daphne_internal.cpp
++++ b/src/api/internal/daphne_internal.cpp
+@@ -145,7 +145,8 @@ int startDAPHNE(int argc, const char** argv, DaphneLibResult* daphneLibRes, int
+                 clEnumVal(PLS, "Performance loop-based self-scheduling"),
+                 clEnumVal(MSTATIC, "Modified version of Static, i.e., instead of n/p, it uses n/(4*p) where n is number of tasks and p is number of threads"),
+                 clEnumVal(MFSC, "Modified version of fixed size chunk self-scheduling, i.e., MFSC does not require profiling information as FSC"),
+-                clEnumVal(PSS, "Probabilistic self-scheduling")
++                clEnumVal(PSS, "Probabilistic self-scheduling"),
++                clEnumVal(CST, "Fixed size tasks. Pass the size via the env variable DAPHNE_CST_TASK_SIZE")
+             ),
+             init(STATIC)
+     );
+diff --git a/src/runtime/local/vectorized/LoadPartitioning.h b/src/runtime/local/vectorized/LoadPartitioning.h
+index d1fd2c5b..097a6350 100644
+--- a/src/runtime/local/vectorized/LoadPartitioning.h
++++ b/src/runtime/local/vectorized/LoadPartitioning.h
+@@ -35,6 +35,7 @@ private:
+     uint64_t tssChunk;
+     uint64_t tssDelta;
+     uint64_t mfscChunk;
++    uint64_t cstChunk;
+     uint32_t fissStages;
+     int getMethod (const char * method){
+         return std::stoi(method);
+@@ -75,6 +76,10 @@ public:
+         tssChunk = (uint64_t) ceil((double) totalTasks / ((double) 2.0*totalWorkers));
+         uint64_t nTemp = (uint64_t) ceil(2.0*totalTasks/(tssChunk+1.0));
+         tssDelta  = (uint64_t) (tssChunk - 1.0)/(double)(nTemp-1.0);
++        cstChunk = 0;
++        if (method == CST && const char* env_cst_size = std::getenv("DAPHNE_CST_TASK_SIZE")) {
++            cstChunk = std::stoi(env_cst_size);
++        }
+     }
+     bool hasNextChunk(){
+         return scheduledTasks < totalTasks;
+@@ -142,6 +147,10 @@ public:
+                 chunkSize=mfscChunk;
+                 break;
+             }
++            case CST:{
++                chunkSize=cstChunk;
++                break;
++            }
+             default:{
+                 chunkSize = (uint64_t)ceil(totalTasks/totalWorkers/4.0);
+                 break;
+diff --git a/src/runtime/local/vectorized/LoadPartitioningDefs.h b/src/runtime/local/vectorized/LoadPartitioningDefs.h
+index d0b66eff..c2f10f2d 100644
+--- a/src/runtime/local/vectorized/LoadPartitioningDefs.h
++++ b/src/runtime/local/vectorized/LoadPartitioningDefs.h
+@@ -42,5 +42,6 @@ enum SelfSchedulingScheme {
+     MSTATIC,
+     MFSC,
+     PSS,
++    CST,
+     INVALID=-1 /* only for JSON enum conversion */
+ };
