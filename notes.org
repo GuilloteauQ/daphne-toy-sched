@@ -1,0 +1,9 @@
+#+TITLE: Notes
+#+AUTHOR: Quentin Guilloteau
+
+* <2023-08-02 Wed>
+
+- Packaged daphne in Nix for better reproducibility: https://github.com/GuilloteauQ/daphne-nix
+- to avoid rebuild everything all the time, i also set up a binary cache at https://daphne-nix.cachix.org
+- the packaging is a bit dirty still, but good enough for simple tests
+  - some of the deps are not managed (like cuda, mpi, fpga stuff)
