@@ -56,8 +56,8 @@ index d1fd2c5b..892cc6a9 100644
 +                cstChunk = std::stoi(env_cst_size);
 +            }
 +            else{
-+                std::cerr << "Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on MFSC" << std::endl;
-+                schedulingMethod = MFSC;
++                std::cerr << "Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on STATIC" << std::endl;
++                schedulingMethod = STATIC;
 +            }
 +        }
      }

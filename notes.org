@@ -386,6 +386,10 @@ Don't forget that you might want to change some of the parameters of the experim
 As expected, too small task size results in long compute time (because of task creation overhead) and large tasks result in also long compute time (unbalanced).
 
 
+Also, why did i decided to use mFSC as a fallback ?
+let's use static, at it the default sched policy
+
+
 Now some reading
 
 ** D5.1 Scheduler design for pipelines and tasks

@@ -18,11 +18,11 @@ To define the task size, i opted for using the environment variable `DAPHNE_CST_
 $ DAPHNE_CST_TASK_SIZE=42 daphne --vec --num-threads=4 --select-matrix-representations --partitioning=CST --args f=\"./data/Amazon0601_0.csv\" --args iterations=1 src/components_read.daphne
 ```
 
-If you try to use the `CST` scheduling policy without the `DAPHNE_CST_TASK_SIZE` environment variable, the paritionning will be done with MFSC, and an error message will be displayed. 
+If you try to use the `CST` scheduling policy without the `DAPHNE_CST_TASK_SIZE` environment variable, the partitioning will be done with STATIC, and an error message will be displayed. 
 
 ```
 $ daphne --vec --num-threads=4 --select-matrix-representations --partitioning=CST --args f=\"./data/Amazon0601_0.csv\" --args iterations=1 src/components_read.daphne
-Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on MFSC
+Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on STATIC
 ```
 
 ## Reproduce
