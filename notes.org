@@ -368,3 +368,21 @@ there are 12 threads, and a single iteration.
 
 
 Ok, gotta go, will continue a bit tomorrow.
+
+* <2023-08-03 Thu>
+
+Add some details to the readme.
+
+did a quick evaluation of the `CST` scheduler.
+
+You can run it with:
+
+#+BEGIN_SRC
+nix develop --command snakemake -c1 plots/cst.pdf
+#+END_SRC
+
+Don't forget that you might want to change some of the parameters of the experiments in `config/config.yaml`
+
+As expected, too small task size results in long compute time (because of task creation overhead) and large tasks result in also long compute time (unbalanced).
+
+

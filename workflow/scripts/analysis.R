@@ -8,8 +8,9 @@ policy = args[n-1]
 outname = args[n]
 
 get_df <- function(filename) {
+  results = str_extract_all(filename, "\\d+")
   read_csv(filename, col_names=c("time")) %>%
-    mutate(nb_threads = as.numeric(str_extract(filename, "\\d+")))
+    mutate(nb_threads = as.numeric(results[[1]][length(results[[1]])]))
 }
 
 files %>%

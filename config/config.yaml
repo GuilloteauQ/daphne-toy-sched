@@ -15,5 +15,14 @@ scheduling_policies:
   - MSTATIC
   - MFSC
   - PSS
-max_threads: 32
-min_threads: 1
+eval_cst:
+  threads:
+    - 2
+    - 4
+    - 8
+  task_size:
+    start: 10
+    end:   100000
+    step:  10000
+max_threads: 8
+min_threads: 4

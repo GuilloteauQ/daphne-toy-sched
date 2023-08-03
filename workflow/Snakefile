@@ -5,10 +5,32 @@ url = config["zenodo_url"]
 dataset = config["dataset"]
 dataset_meta = config["dataset_meta"]
 iterations = config["iterations"]
+config_cst = config["eval_cst"]
 
 rule all:
   input:
-    "plots/all.pdf"
+    "plots/all.pdf",
+    "plots/cst.pdf"
+
+rule expe_cst:
+  input:
+    data = f"data/{dataset}",
+    script = "src/components_read.daphne",
+    meta = f"data/{dataset_meta}",
+  output:
+    "data/CST/result_task_size_{task_size}_nb_threads_{nb_threads}.csv"
+  shell:
+    f"DAPHNE_CST_TASK_SIZE={{wildcards.task_size}} nix develop .#daphne-cst-shell --command daphne --vec --num-threads={{wildcards.nb_threads}} --partitioning=CST --select-matrix-representations --args f=\\\"./{{input.data}}\\\" --args iterations={iterations} {{input.script}} > {{output}}"
+
+rule gen_plot_cst:
+  input:
+    script = "workflow/scripts/cst_eval.R",
+    data = expand("data/CST/result_task_size_{task_size}_nb_threads_{nb_threads}.csv", nb_threads = config_cst["threads"], task_size = range(config_cst["task_size"]["start"], config_cst["task_size"]["end"], config_cst["task_size"]["step"]))
+  output:
+    "plots/cst.pdf"
+  shell:
+    "nix develop .#rshell --command Rscript {input.script} {input.data} {output}"
+    
 
 rule gen_plot:
   input:
@@ -18,8 +40,6 @@ rule gen_plot:
     "plots/all.pdf"
   shell:
     "nix develop .#rshell --command Rscript {input.script} {input.data} {output}"
-
-    
 
 def get_csv_per_policy(wildcards):
     return expand("data/{policy}/result_nb_threads_{nb_threads}.csv", policy=wildcards.policy, nb_threads=range(config["min_threads"], config["max_threads"] + 1))
