@@ -386,3 +386,54 @@ Don't forget that you might want to change some of the parameters of the experim
 As expected, too small task size results in long compute time (because of task creation overhead) and large tasks result in also long compute time (unbalanced).
 
 
+Now some reading
+
+** D5.1 Scheduler design for pipelines and tasks
+
+- program seen as a DAG of operators
+- daphne compiler can rewrite operations
+  - which op to execute
+  - in which order
+  - and where (CPU, GPU, FPGA, etc.)
+- daphne compiler also decides if parallelization is required
+- can control work granularity
+  - by changing chunk sizes
+    - one chunk, several tasks
+  - by changing tasks sizes
+    - one chunk, one task, but a big one
+- several DLS (Dynamic Loop Sel-scheduling) policies
+  - Non adaptive 
+    - *Static* - one big task per worker
+    - *SS* - task size = 1
+    - *Fixed Size Self-scheduling (FSC)* - makes hyp on knowing the variability in iteration exec time and sched overhead.
+      - *mFSC* - more practical as it doesnt require those info
+    - *Guided Self-scheduling (GSS)* - decreasing chunk sizes 
+    - *Trapezoid SS (TSS)* - same as GSS with linear function to decrease chunk size
+    - *Factoring (FAC)* - assume knowledge of mean and std dev execution time of tasks
+      - *FAC2* - more practival, assign half of the remaining tasks at each round
+    - *Trapezoid factoring (TFSS)* - FAC + TSS
+  - adaptive
+    - *PLS* - 1st part of the work scheduled statically, then the 2nd part is scheduled dynamically with GSS
+      - the ratio of work for each part is determined with the Static Workload Ratio (SWR) equal to the min iter exec time divided the max iter exec time
+    - *PSS* - schedule the work based on the remaining work and the number of processors expected to be available in the future
+    - *AWF* - variable sized chunked given weights. these weights can be updated at runtime based on processor performance
+      - several variants (AWF-B, AWF-C, AWF-D, AWF-E)
+	- reminded me of this hehe https://www.youtube.com/watch?v=2gLumNRmqjs
+      - I should investigate more about those
+    - *AF* - based on FAC but learns the mean and std dev values at runtime
+- also distributed scheduling
+  - two levels of scheduling
+- also NUMA-aware scheduling
+- want to also have a cluster-level scheduler
+- and *resource sharing*
+  - TODO: go read some of the papers cited
+    - https://dl.acm.org/doi/pdf/10.1145/2155620.2155650
+  
+
+As I understand, in a distributed context the work queue can be centralized or decentralized.
+In the case of decentralized, when the local queue is empty, the local instance must fetch some new tasks from the centralized queue.
+So this looks like a regulation problem.
+You could see it the other way, where the central queue is sending tasks to the local queue to instead of the local workers querying the central one.
+This then looks (from a biased eye) like a regulation problem.
+The question being: How to maintain enough work in the local queues to avoid starvation and balance load ?
+It looks like queue theory stuff.
