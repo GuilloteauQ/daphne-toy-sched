@@ -25,6 +25,10 @@ $ daphne --vec --num-threads=4 --select-matrix-representations --partitioning=CS
 Env. variable DAPHNE_CST_TASK_SIZE not set! Falling back on STATIC
 ```
 
+![demo](./demo.gif)
+
+(the demo is recorded with [VHS](https://github.com/charmbracelet/vhs), run `nix develop .#record-shell --command vhs demo.tape` to re-record)
+
 ## Reproduce
 
 DAPHNE is not packaged with [Nix](https://nixos.org), which makes it difficult to have reproducible software environments, and thus, also experiments.

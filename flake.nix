@@ -31,6 +31,12 @@
           ];
         };
 
+        record-shell = pkgs.mkShell {
+          buildInputs = [
+            pkgs.vhs
+          ];
+        };
+
         rshell = pkgs.mkShell {
           buildInputs = [
             (pkgs.rWrapper.override {

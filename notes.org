@@ -441,3 +441,12 @@ You could see it the other way, where the central queue is sending tasks to the 
 This then looks (from a biased eye) like a regulation problem.
 The question being: How to maintain enough work in the local queues to avoid starvation and balance load ?
 It looks like queue theory stuff.
+
+
+* <2023-08-22 Tue>
+
+Ok, time to get back to this, finish reading, and prepare the slides
+
+Out of curiosity, i am going to try to record a demo of the sched with vhs: https://github.com/charmbracelet/vhs
+
+
