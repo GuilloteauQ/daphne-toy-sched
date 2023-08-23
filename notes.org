@@ -449,4 +449,50 @@ Ok, time to get back to this, finish reading, and prepare the slides
 
 Out of curiosity, i am going to try to record a demo of the sched with vhs: https://github.com/charmbracelet/vhs
 
+ok cool, works good. there are some issues with the PS1, but it doesnt seem easy to fix right now
 
+
+
+So, concerning the slides, the presentation should be 5 to 10 minutes long on my understanding of daphne.
+it should probably be project wide in the start and then more on the sched part.
+
+also read the master thesis of Jonathan Giger: https://hpc.dmi.unibas.ch/wp-content/uploads/sites/87/2022/08/msc_thesis_jonathan_giger-1.pdf
+
+also i just saw this new paper: https://arxiv.org/pdf/2308.01607.pdf
+
+would be nice to say a word on starpu
+
+
+** DAPHNE: an Open and Extensible System Infrastructure for Integrated Data Analysis Pipelines
+
+- *IDA*: Integrated Data Analysis Pipelines
+  - combinaison of data management, hpc, and ml
+  - very painful to deploy
+  - we are missing a open infra to develop and deploy IDA pipelines
+- DAPHNE
+  - infra for IDA pipelines
+  - based on MLIR (LLVM intermediate representation) 
+    - allows to use/integrate apps and runtime libs (BLAS, LINPACK, MPI, task-sched, ...)
+    - also enables to use HW specific compilation et al.
+  - DaphneDSL
+    - a python, julia, R like lang
+
+** DaphneSched: a scheduler for IDA pipelines 
+
+Presents the different self-scheduling available techniques in Daphne
+Evaluate on several different machines, and different work queues (one per core vs. one per CPU), and different victim selection (SEQ, SEQPRI, RND, RNDPRI)
+
+#+BEGIN_EXAMPLE
+--SEQ                - Steal from next adjacent worker
+--SEQPRI             - Steal from next adjacent worker, prioritize same NUMA domain
+--RANDOM             - Steal from random worker
+--RANDOMPRI          - Steal from random worker, prioritize same NUMA domain
+#+END_EXAMPLE
+
+Results showed that the daphne sched policies can help improve performance, but that in some cases (e.g., dense matrices, and thus already "load balanced"), they can degrade perfs.
+
+
+
+* <2023-08-23 Wed>
+
+Starting the slides

@@ -11,6 +11,25 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
     in {
+      packages.${system} = {
+        slides = pkgs.stdenv.mkDerivation {
+            name = "slides";
+            src = ./slides;
+            buildInputs = with pkgs; [
+                pandoc
+                texlive.combined.scheme-full
+                bibtool
+                rubber
+            ];
+            buildPhase = ''
+                pandoc --from=markdown --to=beamer --slide-level=1 --template=template.tex --output=main.tex main.md
+                rubber -d main.tex
+            '';
+            installPhase = ''
+                cp main.pdf $out
+            '';
+        };
+      };
 
       devShells.${system} = {
         default = pkgs.mkShell { buildInputs = [ pkgs.snakemake pkgs.wget ]; };

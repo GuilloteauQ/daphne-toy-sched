@@ -101,3 +101,9 @@ nix develop --command snakemake -c1 plots/cst.pdf
 ```
 
 You might want to modify the `config/config.yaml` to change some parameters
+
+## Build the slides
+
+```
+nix build .#slides -o slides.pdf
+```
