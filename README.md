@@ -8,6 +8,8 @@ You can see the patch adding the toy scheduler in `src/cst_sched.patch`
 
 My notes are available in `notes.org`
 
+The slides are available in `slides.pdf`
+
 ## The toy scheduler
 
 This toy scheduler (`CST`) allows end users to determine a fixed task size.
